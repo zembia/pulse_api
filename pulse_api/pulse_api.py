@@ -129,8 +129,7 @@ class PulseAPI:
             thread_lock.release()
             if len(device_id_list) == _data_threads_length:
                 break
-            sleep(3)
-            print(f'{len(device_id_list)} - {_data_threads_length}')
+            sleep(0.2)
         
         return data_threads
 
