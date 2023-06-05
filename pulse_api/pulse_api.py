@@ -109,12 +109,12 @@ class PulseAPI:
         }
         headers = {"Authorization": authorization}
 
-        if type(device_id_list) is list:
+        if type(device_id_list) is list:            
             for thread_index, device_id in enumerate(device_id_list):
                 url = f"{self.backend_url}/devices/{device_id}/measures/faster_simple_graph.json"
                 args = [thread_index, params, headers, url, verify]
                 running_threads.append(Thread(target=self.thread_request, args=args))
-                running_threads[-1].start()
+                running_threads[-1].start()            
         else:
             url = f"{self.backend_url}/devices/{device_id}/measures/faster_simple_graph.json"
 
@@ -122,6 +122,18 @@ class PulseAPI:
             res_json = res.json()
 
             return res_json
+        
+        while 1:
+            thread_lock.acquire()
+            _data_threads_length = len(data_threads)
+            thread_lock.release()
+            if len(device_id_list) == _data_threads_length:
+                break
+            sleep(3)
+            print(f'{len(device_id_list)} - {_data_threads_length}')
+        
+        return data_threads
+
 
     def thread_request(self, thread_index, params, headers, url, verify):
         global thread_lock, request_threads, data_threads
@@ -129,7 +141,7 @@ class PulseAPI:
         # Acquire request slot
         while 1:
             thread_lock.acquire()
-            if len(request_threads) >= REQUESTS_LIMIT:
+            if len(request_threads) >= REQUESTS_LIMIT:                
                 thread_lock.release()
                 sleep(0.2)
                 continue
@@ -152,3 +164,5 @@ class PulseAPI:
         thread_lock.acquire()
         data_threads.append(res_json)
         thread_lock.release()
+
+        return
