@@ -3,7 +3,6 @@ from PyInquirer import prompt
 from dateutil.parser import parse
 import requests
 from time import sleep
-import urllib3
 
 REQUESTS_LIMIT = 20
 thread_lock = Lock()
@@ -130,7 +129,7 @@ class PulseAPI:
         # Acquire request slot
         while 1:
             thread_lock.acquire()
-            if len(request_threads) >= REQUESTS_LIMIT:                
+            if len(request_threads) >= REQUESTS_LIMIT:
                 thread_lock.release()
                 sleep(0.2)
                 continue
