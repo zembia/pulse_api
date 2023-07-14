@@ -12,8 +12,16 @@ data_threads = []
 
 
 class PulseAPI:
-    def __init__(self, backend_url):
+    def __init__(self, backend_url, verify=None):
+        self.requests_limit = REQUESTS_LIMIT
         self.backend_url = backend_url
+        self.verify = verify
+
+    def set_verify(self, verify):
+        self.verify = verify
+
+    def set_requests_limit(self, limit):
+        self.requests_limit = limit
 
     def get_credentials(self, credentials):
         user = credentials
@@ -47,7 +55,9 @@ class PulseAPI:
 
         return user_email, user_password
 
-    def login(self, user_email, user_password, verify=True):
+    def login(self, user_email, user_password, verify=None):
+        if verify == None:
+            verify = self.verify
         # Do request
         data = {
             "user": {
@@ -72,14 +82,20 @@ class PulseAPI:
 
         return authorization
 
-    def get_measure_names(self, authorization, device_id, verify=True):
+    def get_measure_names(self, authorization, device_id, verify=None):
+        if verify == None:
+            verify = self.verify
+
         url = f"{self.backend_url}/devices/{device_id}/measure_names.json"
         headers = {"Authorization": authorization}
         res = requests.get(url=url, headers=headers, verify=verify)
         res_json = res.json()
         return res_json
 
-    def get_devices(self, authorization, verify=True):
+    def get_devices(self, authorization, verify=None):
+        if verify == None:
+            verify = self.verify
+
         url = f"{self.backend_url}/devices.json"
         headers = {"Authorization": authorization}
         res = requests.get(url=url, headers=headers, verify=verify)
@@ -94,8 +110,11 @@ class PulseAPI:
         start_date,
         end_date,
         measure_name_id_list,
-        verify=True,
+        verify=None,
     ):
+        if verify == None:
+            verify = self.verify
+
         # Parse dates
         start_date = parse(start_date, fuzzy=True)
         end_date = parse(end_date, fuzzy=True)
@@ -109,12 +128,12 @@ class PulseAPI:
         }
         headers = {"Authorization": authorization}
 
-        if type(device_id_list) is list:            
+        if type(device_id_list) is list:
             for thread_index, device_id in enumerate(device_id_list):
                 url = f"{self.backend_url}/devices/{device_id}/measures/faster_simple_graph.json"
                 args = [thread_index, params, headers, url, verify]
                 running_threads.append(Thread(target=self.thread_request, args=args))
-                running_threads[-1].start()            
+                running_threads[-1].start()
         else:
             url = f"{self.backend_url}/devices/{device_id}/measures/faster_simple_graph.json"
 
@@ -122,7 +141,7 @@ class PulseAPI:
             res_json = res.json()
 
             return res_json
-        
+
         while 1:
             thread_lock.acquire()
             _data_threads_length = len(data_threads)
@@ -130,17 +149,19 @@ class PulseAPI:
             if len(device_id_list) == _data_threads_length:
                 break
             sleep(0.2)
-        
-        return data_threads
 
+        return data_threads
 
     def thread_request(self, thread_index, params, headers, url, verify):
         global thread_lock, request_threads, data_threads
 
+        if verify == None:
+            verify = self.verify
+
         # Acquire request slot
         while 1:
             thread_lock.acquire()
-            if len(request_threads) >= REQUESTS_LIMIT:                
+            if len(request_threads) >= REQUESTS_LIMIT:
                 thread_lock.release()
                 sleep(0.2)
                 continue
