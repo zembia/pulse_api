@@ -16,6 +16,7 @@ class PulseAPI:
         self.requests_limit = REQUESTS_LIMIT
         self.backend_url = backend_url
         self.verify = verify
+        self.authorization = ""
 
     def set_backend_url(self, backend_url):
         self.backend_url = backend_url
@@ -85,12 +86,16 @@ class PulseAPI:
             exit()
 
         authorization = res.headers["Authorization"]
+        self.authorization = authorization
 
         return authorization
 
-    def get_measure_names(self, authorization, device_id, verify=None):
+    def get_measure_names(self, device_id, authorization="", verify=None):
         if verify == None:
             verify = self.verify
+
+        if authorization == "":
+            authorization = self.authorization
 
         url = f"{self.backend_url}/devices/{device_id}/measure_names.json"
         headers = {"Authorization": authorization}
@@ -98,9 +103,12 @@ class PulseAPI:
         res_json = res.json()
         return res_json
 
-    def get_devices(self, authorization, verify=None):
+    def get_devices(self, authorization="", verify=None):
         if verify == None:
             verify = self.verify
+
+        if authorization == "":
+            authorization = self.authorization
 
         url = f"{self.backend_url}/devices.json"
         headers = {"Authorization": authorization}
@@ -111,15 +119,18 @@ class PulseAPI:
 
     def get_measures(
         self,
-        authorization,
         device_id_list,
         start_date,
         end_date,
         measure_name_id_list,
+        authorization="",
         verify=None,
     ):
         if verify == None:
             verify = self.verify
+
+        if authorization == "":
+            authorization = self.authorization
 
         # Parse dates
         start_date = parse(start_date, fuzzy=True)
