@@ -12,10 +12,13 @@ data_threads = []
 
 
 class PulseAPI:
-    def __init__(self, backend_url, verify=None):
+    def __init__(self, backend_url="", verify=None):
         self.requests_limit = REQUESTS_LIMIT
         self.backend_url = backend_url
         self.verify = verify
+
+    def set_backend_url(self, backend_url):
+        self.backend_url = backend_url
 
     def set_verify(self, verify):
         self.verify = verify
@@ -54,6 +57,9 @@ class PulseAPI:
             user_password = user["password"]
 
         return user_email, user_password
+
+    def set_authorization(self, authorization):
+        self.authorization = authorization
 
     def login(self, user_email, user_password, verify=None):
         if verify == None:
