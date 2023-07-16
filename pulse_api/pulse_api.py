@@ -3,6 +3,7 @@ from PyInquirer import prompt
 from dateutil.parser import parse
 import requests
 from time import sleep
+import pdb
 
 REQUESTS_LIMIT = 20
 thread_lock = Lock()
@@ -148,7 +149,7 @@ class PulseAPI:
         if type(device_id_list) is list:
             for thread_index, device_id in enumerate(device_id_list):
                 url = f"{self.backend_url}/devices/{device_id}/measures/faster_simple_graph.json"
-                args = [thread_index, params, headers, url, verify]
+                args = [thread_index, params, headers, url, verify, device_id]
                 running_threads.append(Thread(target=self.thread_request, args=args))
                 running_threads[-1].start()
         else:
@@ -157,7 +158,23 @@ class PulseAPI:
             res = requests.get(url=url, params=params, headers=headers, verify=verify)
             res_json = res.json()
 
-            return res_json
+            measures_raw = res_json["measures"]
+            measures = {"device_id": device_id, "origin_dt_tz": [], "values": {}}
+
+            for measure in measures_raw:
+                measure_name_id = f'{measure["measure_name_id"]}'
+                if measure_name_id not in measures["values"]:
+                    measures["values"][measure_name_id] = []
+
+                current_ts = measure["origin_dt_tz"]
+                current_value = measure["value"]
+                if len(measures["origin_dt_tz"]) == 0:
+                    measures["origin_dt_tz"].append(current_ts)
+                elif measures["origin_dt_tz"][-1] != current_ts:
+                    measures["origin_dt_tz"].append(current_ts)
+                measures["values"][measure_name_id].append(current_value)
+
+            return measures
 
         while 1:
             thread_lock.acquire()
@@ -169,7 +186,7 @@ class PulseAPI:
 
         return data_threads
 
-    def thread_request(self, thread_index, params, headers, url, verify):
+    def thread_request(self, thread_index, params, headers, url, verify, device_id):
         global thread_lock, request_threads, data_threads
 
         if verify == None:
@@ -191,6 +208,23 @@ class PulseAPI:
         res = requests.get(url=url, params=params, headers=headers, verify=verify)
         res_json = res.json()
 
+        # Reformat response
+        measures_raw = res_json["measures"]
+        measures = {"device_id": device_id, "origin_dt_tz": [], "values": {}}
+
+        for measure in measures_raw:
+            measure_name_id = f'{measure["measure_name_id"]}'
+            if measure_name_id not in measures["values"]:
+                measures["values"][measure_name_id] = []
+
+            current_ts = measure["origin_dt_tz"]
+            current_value = measure["value"]
+            if len(measures["origin_dt_tz"]) == 0:
+                measures["origin_dt_tz"].append(current_ts)
+            elif measures["origin_dt_tz"][-1] != current_ts:
+                measures["origin_dt_tz"].append(current_ts)
+            measures["values"][measure_name_id].append(current_value)
+
         # Release request slot
         thread_lock.acquire()
         i = request_threads.index(thread_index)
@@ -199,7 +233,7 @@ class PulseAPI:
 
         # Append data
         thread_lock.acquire()
-        data_threads.append(res_json)
+        data_threads.append(measures)
         thread_lock.release()
 
         return
