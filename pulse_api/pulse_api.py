@@ -256,12 +256,7 @@ class PulseAPI:
         # Append data
         thread_lock.acquire()
         if process != None:
-            data_threads = process(
-                measures,
-                process_args["stats"],
-                process_args["current_year"],
-                process_args["raw_end_date"],
-            )
+            data_threads = process(measures, **process_args)
         else:
             data_threads.append(measures)
         thread_lock.release()
