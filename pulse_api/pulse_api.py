@@ -10,6 +10,7 @@ thread_lock = Lock()
 running_threads = []
 request_threads = []
 data_threads = []
+data_cnt = 0
 
 
 class PulseAPI:
@@ -125,6 +126,7 @@ class PulseAPI:
         end_date,
         measure_name_id_list,
         process=None,
+        process_args={},
         authorization="",
         verify=None,
     ):
@@ -150,7 +152,16 @@ class PulseAPI:
         if type(device_id_list) is list:
             for thread_index, device_id in enumerate(device_id_list):
                 url = f"{self.backend_url}/devices/{device_id}/measures/faster_simple_graph.json"
-                args = [thread_index, params, headers, url, verify, device_id, process]
+                args = [
+                    thread_index,
+                    params,
+                    headers,
+                    url,
+                    verify,
+                    device_id,
+                    process,
+                    process_args,
+                ]
                 running_threads.append(Thread(target=self.thread_request, args=args))
                 running_threads[-1].start()
         else:
@@ -179,16 +190,24 @@ class PulseAPI:
 
         while 1:
             thread_lock.acquire()
-            _data_threads_length = len(data_threads)
+            _data_cnt = data_cnt  # len(data_threads)
             thread_lock.release()
-            if len(device_id_list) == _data_threads_length:
+            if len(device_id_list) == _data_cnt:
                 break
             sleep(0.2)
 
         return data_threads
 
     def thread_request(
-        self, thread_index, params, headers, url, verify, device_id, process
+        self,
+        thread_index,
+        params,
+        headers,
+        url,
+        verify,
+        device_id,
+        process,
+        process_args,
     ):
         global thread_lock, request_threads, data_threads
 
@@ -237,7 +256,12 @@ class PulseAPI:
         # Append data
         thread_lock.acquire()
         if process != None:
-            process(measures)
+            data_threads = process(
+                measures,
+                process_args["stats"],
+                process_args["current_year"],
+                process_args["raw_end_data"],
+            )
         else:
             data_threads.append(measures)
         thread_lock.release()

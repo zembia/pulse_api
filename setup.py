@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="pulse_api",
-    version="0.0.10",
+    version="0.0.11",
     description="API para plataforma Pulse de Zembia",
     author="Zembia SpA",
     packages=["pulse_api"],
