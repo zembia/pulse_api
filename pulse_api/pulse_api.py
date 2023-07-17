@@ -260,7 +260,7 @@ class PulseAPI:
                 measures,
                 process_args["stats"],
                 process_args["current_year"],
-                process_args["raw_end_data"],
+                process_args["raw_end_date"],
             )
         else:
             data_threads.append(measures)
