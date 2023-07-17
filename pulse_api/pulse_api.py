@@ -259,6 +259,7 @@ class PulseAPI:
             data_threads = process(measures, **process_args)
         else:
             data_threads.append(measures)
+        data_cnt = data_cnt + 1
         thread_lock.release()
 
         return
