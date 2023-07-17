@@ -209,7 +209,7 @@ class PulseAPI:
         process,
         process_args,
     ):
-        global thread_lock, request_threads, data_threads
+        global thread_lock, request_threads, data_threads, data_cnt
 
         if verify == None:
             verify = self.verify
