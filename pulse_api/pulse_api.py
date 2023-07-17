@@ -124,6 +124,7 @@ class PulseAPI:
         start_date,
         end_date,
         measure_name_id_list,
+        process=None,
         authorization="",
         verify=None,
     ):
@@ -149,7 +150,7 @@ class PulseAPI:
         if type(device_id_list) is list:
             for thread_index, device_id in enumerate(device_id_list):
                 url = f"{self.backend_url}/devices/{device_id}/measures/faster_simple_graph.json"
-                args = [thread_index, params, headers, url, verify, device_id]
+                args = [thread_index, params, headers, url, verify, device_id, process]
                 running_threads.append(Thread(target=self.thread_request, args=args))
                 running_threads[-1].start()
         else:
@@ -186,7 +187,9 @@ class PulseAPI:
 
         return data_threads
 
-    def thread_request(self, thread_index, params, headers, url, verify, device_id):
+    def thread_request(
+        self, thread_index, params, headers, url, verify, device_id, process
+    ):
         global thread_lock, request_threads, data_threads
 
         if verify == None:
@@ -233,7 +236,10 @@ class PulseAPI:
 
         # Append data
         thread_lock.acquire()
-        data_threads.append(measures)
+        if process != None:
+            process(measures)
+        else:
+            data_threads.append(measures)
         thread_lock.release()
 
         return
