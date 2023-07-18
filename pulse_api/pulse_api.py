@@ -105,14 +105,24 @@ class PulseAPI:
         res_json = res.json()
         return res_json
 
-    def get_devices(self, authorization="", verify=None):
+    def get_devices(self, authorization="", properties=False, verify=None):
+        params = []
+        params_string = ""
         if verify == None:
             verify = self.verify
 
         if authorization == "":
             authorization = self.authorization
 
-        url = f"{self.backend_url}/devices.json"
+        if properties == True:
+            params.append("new=true")
+            params.append("properties=true")
+
+        base_url = f"{self.backend_url}/devices.json"
+        if len(params) > 0:
+            params_string = "?" + "&".join(params)
+        url = base_url + params_string
+
         headers = {"Authorization": authorization}
         res = requests.get(url=url, headers=headers, verify=verify)
         res_json = res.json()
