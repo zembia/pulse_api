@@ -1,5 +1,5 @@
 from threading import Thread, Lock
-from PyInquirer import prompt
+from InquirerPy import prompt
 from dateutil.parser import parse
 import requests
 from time import sleep
