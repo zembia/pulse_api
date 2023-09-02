@@ -1,9 +1,7 @@
 from threading import Thread, Lock
-from InquirerPy import prompt
 from dateutil.parser import parse
 import requests
 from time import sleep
-import pdb
 
 REQUESTS_LIMIT = 20
 thread_lock = Lock()
@@ -36,23 +34,8 @@ class PulseAPI:
         new_params = False
 
         if user["email"] is None or user["password"] is None:
-            # Request credentials
-            questions = [
-                {
-                    "type": "input",
-                    "name": "email",
-                    "message": "Ingresa tu correo de la cuenta Pulse:",
-                },
-                {
-                    "type": "password",
-                    "message": "Ingrese contraseña de plataforma Pulse:",
-                    "name": "password",
-                },
-            ]
-
-            ans = prompt(questions)
-            user_email = ans["email"]
-            user_password = ans["password"]
+            user_email = ""
+            user_password = ""
             new_params = True
 
         if not new_params:
