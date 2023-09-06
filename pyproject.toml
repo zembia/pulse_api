@@ -1,7 +1,7 @@
 [project]
 name="pulse_api"
 description="API para plataforma Pulse de Zembia"
-version="0.1.7"
+version="0.1.8"
 authors=[
   {name = "Zembia SpA", email = "desarrollo@zembia.cl"}
 ]
