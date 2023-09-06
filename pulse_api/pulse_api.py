@@ -236,6 +236,7 @@ class PulseAPI:
                 break
             except:
                 tries = tries + 1
+                sleep(tries)
 
             if tries == self.request_retry_limit:
                 error = True
