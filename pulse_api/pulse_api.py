@@ -4,6 +4,7 @@ import requests
 from time import sleep
 
 REQUESTS_LIMIT = 20
+REQUEST_RETRY_LIMIT = 3
 thread_lock = Lock()
 running_threads = []
 request_threads = []
@@ -14,6 +15,7 @@ data_cnt = 0
 class PulseAPI:
     def __init__(self, backend_url="", verify=None):
         self.requests_limit = REQUESTS_LIMIT
+        self.request_retry_limit = REQUEST_RETRY_LIMIT
         self.backend_url = backend_url
         self.verify = verify
         self.authorization = ""
@@ -23,6 +25,9 @@ class PulseAPI:
 
     def set_verify(self, verify):
         self.verify = verify
+
+    def set_retry_limits(self, request_retry_limit):
+        self.request_retry_limit = request_retry_limit
 
     def set_requests_limit(self, limit):
         self.requests_limit = limit
@@ -232,7 +237,7 @@ class PulseAPI:
             except:
                 tries = tries + 1
 
-            if tries == 3:
+            if tries == self.request_retry_limit:
                 error = True
                 break
 
