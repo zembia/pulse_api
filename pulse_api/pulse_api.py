@@ -220,12 +220,39 @@ class PulseAPI:
             break
 
         # Make request
-        res = requests.get(url=url, params=params, headers=headers, verify=verify)
-        res_json = res.json()
+        tries = 0
+        error = False
+        while 1:
+            try:
+                res = requests.get(
+                    url=url, params=params, headers=headers, verify=verify
+                )
+                res_json = res.json()
+                break
+            except:
+                tries = tries + 1
+
+            if tries == 3:
+                error = True
+                break
 
         # Reformat response
-        measures_raw = res_json["measures"]
-        measures = {"device_id": device_id, "origin_dt_tz": [], "values": {}}
+        if error:
+            measures = {
+                "device_id": device_id,
+                "origin_dt_tz": [],
+                "values": {},
+                "status": "error",
+            }
+            measures_raw = []
+        else:
+            measures_raw = res_json["measures"]
+            measures = {
+                "device_id": device_id,
+                "origin_dt_tz": [],
+                "values": {},
+                "status": "error",
+            }
 
         for measure in measures_raw:
             measure_name_id = f'{measure["measure_name_id"]}'
