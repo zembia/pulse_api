@@ -256,7 +256,7 @@ class PulseAPI:
                 "device_id": device_id,
                 "origin_dt_tz": [],
                 "values": {},
-                "status": "error",
+                "status": "success",
             }
 
         for measure in measures_raw:
